@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Dashboard</h2>
+        <div id="userInfo"></div>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "index.html";
+        }
+
+        document.getElementById("userInfo").innerHTML = `
+      <p><strong>Name:</strong> ${user.name}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+    `;
+
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.clear();
+            window.location.href = "index.html";
+        });
+    </script>
+
+</body>
+
+</html>
