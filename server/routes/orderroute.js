@@ -2,17 +2,21 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 
+
+// ==============================
 // CREATE ORDER
+// ==============================
 router.post("/create", async (req, res) => {
     try {
         const { customerName, phone, orderType, address, items } = req.body;
 
-        if (!customerName || !phone || !orderType || !items || !Array.isArray(items)) {
+        if (!customerName || !phone || !orderType || !items || items.length === 0) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
+        // Calculate total amount automatically
         const totalAmount = items.reduce((sum, item) => {
-            return sum + (item.price * item.quantity);
+            return sum + item.price * item.quantity;
         }, 0);
 
         const newOrder = new Order({
@@ -37,7 +41,10 @@ router.post("/create", async (req, res) => {
     }
 });
 
+
+// ==============================
 // GET ALL ORDERS
+// ==============================
 router.get("/all", async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -47,5 +54,6 @@ router.get("/all", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;
