@@ -2,179 +2,102 @@
 <html>
 
 <head>
-    <title>Delight Dhaba Kitchen</title>
+    <title>Delight Dhaba Admin</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
+            background: #f4f4f4;
             padding: 20px;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .column {
+        .order {
             background: white;
             padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .column h2 {
-            text-align: center;
             margin-bottom: 15px;
-        }
-
-        .order-card {
-            background: #fafafa;
-            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 5px solid #ccc;
-        }
-
-        .pending {
-            border-color: orange;
-        }
-
-        .preparing {
-            border-color: blue;
-        }
-
-        .ready {
-            border-color: green;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .completed {
-            border-color: gray;
+            opacity: 0.5;
         }
 
         button {
-            margin-top: 8px;
-            padding: 6px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .prepare-btn {
-            background: blue;
-            color: white;
-        }
-
-        .ready-btn {
+            padding: 8px 12px;
             background: green;
             color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .complete-btn {
-            background: black;
-            color: white;
+        button:hover {
+            background: darkgreen;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>🍽 Delight Dhaba — Kitchen Dashboard</h1>
+    <h1>Delight Dhaba Admin Panel</h1>
 
-    <div class="container">
-        <div class="column">
-            <h2>Pending</h2>
-            <div id="pending"></div>
-        </div>
-
-        <div class="column">
-            <h2>Preparing</h2>
-            <div id="preparing"></div>
-        </div>
-
-        <div class="column">
-            <h2>Ready</h2>
-            <div id="ready"></div>
-        </div>
-
-        <div class="column">
-            <h2>Completed</h2>
-            <div id="completed"></div>
-        </div>
-    </div>
+    <div id="orders"></div>
 
     <script>
-        const API = "/api/orders/all";
+        const BASE_URL = "https://delight-dhaba.onrender.com";
 
         async function loadOrders() {
-            const res = await fetch(API);
-            const orders = await res.json();
+            const res = await fetch(BASE_URL + "/api/orders/all");
+            const data = await res.json();
 
-            document.getElementById("pending").innerHTML = "";
-            document.getElementById("preparing").innerHTML = "";
-            document.getElementById("ready").innerHTML = "";
-            document.getElementById("completed").innerHTML = "";
+            const container = document.getElementById("orders");
+            container.innerHTML = "";
 
-            orders.forEach(order => {
-                const card = document.createElement("div");
-                card.className = `order-card ${order.orderStatus}`;
+            data.forEach(order => {
 
-                card.innerHTML = `
-      <strong>#${order.orderNumber}</strong><br>
-      ${order.customerName}<br>
-      ${order.orderType}<br>
-      ₹${order.totalAmount}
-      <div>
-        ${order.items.map(i => `${i.name} x${i.quantity}`).join("<br>")}
-      </div>
+                const div = document.createElement("div");
+                div.className = "order";
+
+                if (order.orderStatus === "completed") {
+                    div.classList.add("completed");
+                }
+
+                div.innerHTML = `
+      <h3>Order #${order.orderNumber}</h3>
+      <p><strong>Name:</strong> ${order.customerName}</p>
+      <p><strong>Phone:</strong> ${order.phone}</p>
+      <p><strong>Address:</strong> ${order.address}</p>
+      <p><strong>Total:</strong> ₹${order.totalAmount}</p>
+      <p><strong>Status:</strong> ${order.orderStatus}</p>
+      <p><strong>Items:</strong></p>
+      <ul>
+        ${order.items.map(item => `
+          <li>${item.name} x ${item.quantity} (₹${item.price})</li>
+        `).join("")}
+      </ul>
+      ${order.orderStatus === "pending"
+                        ? `<button onclick="markCompleted('${order._id}')">Mark as Completed</button>`
+                        : ""}
     `;
 
-                if (order.orderStatus === "pending") {
-                    const btn = document.createElement("button");
-                    btn.innerText = "Start Preparing";
-                    btn.className = "prepare-btn";
-                    btn.onclick = () => updateStatus(order._id, "preparing");
-                    card.appendChild(btn);
-                }
-
-                if (order.orderStatus === "preparing") {
-                    const btn = document.createElement("button");
-                    btn.innerText = "Mark Ready";
-                    btn.className = "ready-btn";
-                    btn.onclick = () => updateStatus(order._id, "ready");
-                    card.appendChild(btn);
-                }
-
-                if (order.orderStatus === "ready") {
-                    const btn = document.createElement("button");
-                    btn.innerText = "Complete";
-                    btn.className = "complete-btn";
-                    btn.onclick = () => updateStatus(order._id, "completed");
-                    card.appendChild(btn);
-                }
-
-                document.getElementById(order.orderStatus).appendChild(card);
+                container.appendChild(div);
             });
         }
 
-        async function updateStatus(id, status) {
-            await fetch(`/api/orders/status/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status })
+        async function markCompleted(id) {
+            await fetch(BASE_URL + "/api/orders/complete/" + id, {
+                method: "PUT"
             });
+
             loadOrders();
         }
 
-        setInterval(loadOrders, 5000);
         loadOrders();
+        setInterval(loadOrders, 5000);
     </script>
 
 </body>
