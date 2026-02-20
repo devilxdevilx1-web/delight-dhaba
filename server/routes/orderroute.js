@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 
-// CREATE ORDER
+/* ===============================
+   CREATE ORDER
+================================= */
 router.post("/create", async (req, res) => {
     try {
         const {
@@ -38,7 +40,9 @@ router.post("/create", async (req, res) => {
 });
 
 
-// GET ALL ORDERS
+/* ===============================
+   GET ALL ORDERS
+================================= */
 router.get("/all", async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -50,20 +54,28 @@ router.get("/all", async (req, res) => {
 });
 
 
-// UPDATE ORDER STATUS
-router.put("/update/:id", async (req, res) => {
+/* ===============================
+   MARK ORDER AS COMPLETED
+================================= */
+router.put("/complete/:id", async (req, res) => {
     try {
-        const { status } = req.body;
-
         const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
-            { orderStatus: status },
+            { orderStatus: "completed" },
             { new: true }
         );
 
-        res.json(updatedOrder);
+        if (!updatedOrder) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        res.json({
+            message: "Order marked as completed",
+            order: updatedOrder
+        });
+
     } catch (error) {
-        console.error("UPDATE ERROR:", error);
+        console.error("COMPLETE ERROR:", error);
         res.status(500).json({ message: error.message });
     }
 });
