@@ -14,6 +14,10 @@
             text-align: center;
         }
 
+        h2 {
+            margin-top: 40px;
+        }
+
         .order {
             background: white;
             padding: 15px;
@@ -23,7 +27,7 @@
         }
 
         .completed {
-            opacity: 0.5;
+            opacity: 0.6;
         }
 
         button {
@@ -38,33 +42,77 @@
         button:hover {
             background: darkgreen;
         }
+
+        #loginBox {
+            max-width: 300px;
+            margin: 100px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        input {
+            padding: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>Delight Dhaba Admin Panel</h1>
+    <div id="loginBox">
+        <h2>Admin Login</h2>
+        <input type="password" id="password" placeholder="Enter password" />
+        <button onclick="login()">Login</button>
+    </div>
 
-    <div id="orders"></div>
+    <div id="adminPanel" style="display:none;">
+        <h1>Delight Dhaba Admin Panel</h1>
+
+        <h2>🟢 Pending Orders</h2>
+        <div id="pendingOrders"></div>
+
+        <h2>✅ Completed Orders</h2>
+        <div id="completedOrders"></div>
+    </div>
 
     <script>
         const BASE_URL = "https://delight-dhaba.onrender.com";
+        const ADMIN_PASSWORD = "1234"; // 🔥 Change this later
+
+        function login() {
+            const entered = document.getElementById("password").value;
+
+            if (entered === ADMIN_PASSWORD) {
+                document.getElementById("loginBox").style.display = "none";
+                document.getElementById("adminPanel").style.display = "block";
+                loadOrders();
+                setInterval(loadOrders, 5000);
+            } else {
+                alert("Wrong password");
+            }
+        }
 
         async function loadOrders() {
             const res = await fetch(BASE_URL + "/api/orders/all");
             const data = await res.json();
 
-            const container = document.getElementById("orders");
-            container.innerHTML = "";
+            const pendingContainer = document.getElementById("pendingOrders");
+            const completedContainer = document.getElementById("completedOrders");
+
+            pendingContainer.innerHTML = "";
+            completedContainer.innerHTML = "";
+
+            // Sort newest first
+            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             data.forEach(order => {
 
                 const div = document.createElement("div");
                 div.className = "order";
-
-                if (order.orderStatus === "completed") {
-                    div.classList.add("completed");
-                }
 
                 div.innerHTML = `
       <h3>Order #${order.orderNumber}</h3>
@@ -84,7 +132,12 @@
                         : ""}
     `;
 
-                container.appendChild(div);
+                if (order.orderStatus === "pending") {
+                    pendingContainer.appendChild(div);
+                } else {
+                    div.classList.add("completed");
+                    completedContainer.appendChild(div);
+                }
             });
         }
 
@@ -95,9 +148,6 @@
 
             loadOrders();
         }
-
-        loadOrders();
-        setInterval(loadOrders, 5000);
     </script>
 
 </body>
