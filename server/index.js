@@ -21,10 +21,12 @@ const orderRoutes = require("./routes/orderroute");
 app.use("/api/orders", orderRoutes);
 
 // Serve frontend (important for Render)
-app.use(express.static(path.join(__dirname, "../client")));
+const clientPath = path.join(__dirname, "../client");
 
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/index.html"));
+app.use(express.static(clientPath));
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(clientPath, "index.html"));
 });
 
 // Port
