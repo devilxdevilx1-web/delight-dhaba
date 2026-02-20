@@ -1,24 +1,59 @@
-const express = require("express");
-const router = express.Router();
-const Order = require("../models/Order");
-const authMiddleware = require("../middleware/authMiddleware");
+const mongoose = require("mongoose");
 
-router.post("/", authMiddleware, async (req, res) => {
-    try {
-        const { items, total } = req.body;
-
-        const order = new Order({
-            userId: req.user.id,
-            items,
-            total,
-        });
-
-        await order.save();
-
-        res.json({ message: "Order saved successfully" });
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
+const orderItemSchema = new mongoose.Schema({
+    name: String,
+    quantity: Number,
+    price: Number
 });
 
-module.exports = router;
+const orderSchema = new mongoose.Schema(
+    {
+        orderNumber: {
+            type: Number,
+            unique: true
+        },
+        customerName: {
+            type: String,
+            required: true
+        },
+        phone: {
+            type: String,
+            required: true
+        },
+        orderType: {
+            type: String,
+            enum: ["pickup", "delivery"],
+            required: true
+        },
+        address: {
+            type: String,
+            default: ""
+        },
+        items: [orderItemSchema],
+        totalAmount: {
+            type: Number,
+            required: true
+        },
+        orderStatus: {
+            type: String,
+            enum: ["pending", "preparing", "ready", "completed"],
+            default: "pending"
+        }
+    },
+    { timestamps: true }
+);
+
+// Auto increment order number
+orderSchema.pre("save", async function (next) {
+    if (this.isNew) {
+        const lastOrder = await mongoose
+            .model("Order")
+            .findOne()
+            .sort({ orderNumber: -1 });
+
+        this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
+    }
+    next();
+});
+
+module.exports = mongoose.model("Order", orderSchema);
