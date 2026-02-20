@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// ROUTES
 app.use("/api/orders", require("./routes/orderroute"));
 
 // Test route
@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
     res.send("Delight Dhaba Backend Running");
 });
 
-// MongoDB connection
+// Mongo connection
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
     .catch(err => console.log("Mongo Error:", err));
