@@ -35,8 +35,12 @@ router.post("/create", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("ORDER ERROR:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        console.error("ORDER ERROR FULL:", error);
+        res.status(500).json({
+            message: "Server error",
+            error: error.message,
+            stack: error.stack
+        });
     }
 });
 
