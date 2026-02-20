@@ -1,10 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const Order = require("../models/Order");
-
-// CREATE ORDER
 router.post("/create", async (req, res) => {
     try {
+        console.log("Incoming Order:", req.body);
+
         const { customerName, phone, orderType, address, items } = req.body;
 
         if (!customerName || !phone || !orderType || !items || !items.length) {
@@ -31,35 +28,9 @@ router.post("/create", async (req, res) => {
             message: "Order placed successfully",
             orderNumber: newOrder.orderNumber
         });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        console.error("ORDER ERROR:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 });
-
-// GET ALL ORDERS (Admin)
-router.get("/all", async (req, res) => {
-    try {
-        const orders = await Order.find().sort({ createdAt: -1 });
-        res.json(orders);
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-// UPDATE ORDER STATUS
-router.put("/status/:id", async (req, res) => {
-    try {
-        const { status } = req.body;
-
-        await Order.findByIdAndUpdate(req.params.id, {
-            orderStatus: status
-        });
-
-        res.json({ message: "Order status updated" });
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-module.exports = router;
