@@ -1,31 +1,27 @@
 const express = require("express");
 const router = express.Router();
-const Order = require("../models/Order");
+const Order = require("../models/orders");
 
-
-// ==============================
 // CREATE ORDER
-// ==============================
 router.post("/create", async (req, res) => {
     try {
-        const { customerName, phone, orderType, address, items } = req.body;
-
-        if (!customerName || !phone || !orderType || !items || items.length === 0) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        // Calculate total amount automatically
-        const totalAmount = items.reduce((sum, item) => {
-            return sum + item.price * item.quantity;
-        }, 0);
+        const {
+            customerName,
+            phone,
+            orderType,
+            address,
+            items,
+            totalAmount
+        } = req.body;
 
         const newOrder = new Order({
             customerName,
             phone,
             orderType,
-            address: orderType === "delivery" ? address : "",
+            address,
             items,
-            totalAmount
+            totalAmount,
+            orderStatus: "pending"
         });
 
         await newOrder.save();
@@ -42,9 +38,7 @@ router.post("/create", async (req, res) => {
 });
 
 
-// ==============================
 // GET ALL ORDERS
-// ==============================
 router.get("/all", async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -55,5 +49,23 @@ router.get("/all", async (req, res) => {
     }
 });
 
+
+// UPDATE ORDER STATUS
+router.put("/update/:id", async (req, res) => {
+    try {
+        const { status } = req.body;
+
+        const updatedOrder = await Order.findByIdAndUpdate(
+            req.params.id,
+            { orderStatus: status },
+            { new: true }
+        );
+
+        res.json(updatedOrder);
+    } catch (error) {
+        console.error("UPDATE ERROR:", error);
+        res.status(500).json({ message: error.message });
+    }
+});
 
 module.exports = router;

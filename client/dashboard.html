@@ -2,35 +2,97 @@
 <html>
 
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Delight Dhaba Admin</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .column {
+            width: 45%;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .order-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <h2>Dashboard</h2>
-        <div id="userInfo"></div>
-        <button id="logoutBtn">Logout</button>
+    <h1>Admin Dashboard</h1>
+
+    <div class="column">
+        <h2>Pending Orders</h2>
+        <div id="pending"></div>
+    </div>
+
+    <div class="column">
+        <h2>Completed Orders</h2>
+        <div id="completed"></div>
     </div>
 
     <script>
-        const user = JSON.parse(localStorage.getItem("user"));
-        const token = localStorage.getItem("token");
+        const API = "/api/orders/all";
 
-        if (!token) {
-            window.location.href = "index.html";
-        }
+        async function loadOrders() {
+            const res = await fetch(API);
+            const orders = await res.json();
 
-        document.getElementById("userInfo").innerHTML = `
-      <p><strong>Name:</strong> ${user.name}</p>
-      <p><strong>Email:</strong> ${user.email}</p>
+            document.getElementById("pending").innerHTML = "";
+            document.getElementById("completed").innerHTML = "";
+
+            orders.forEach(order => {
+                const card = document.createElement("div");
+                card.className = "order-card";
+
+                card.innerHTML = `
+      <strong>Order #${order.orderNumber}</strong><br>
+      ${order.customerName}<br>
+      ${order.phone}<br>
+      ${order.address}<br>
+      <strong>Total: ₹${order.totalAmount}</strong><br>
+      <div>
+        ${order.items.map(i => `${i.name} x${i.quantity}`).join("<br>")}
+      </div>
     `;
 
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.clear();
-            window.location.href = "index.html";
-        });
+                if (order.orderStatus === "pending") {
+                    const btn = document.createElement("button");
+                    btn.innerText = "Mark Completed";
+                    btn.onclick = () => updateStatus(order._id, "completed");
+                    card.appendChild(btn);
+
+                    document.getElementById("pending").appendChild(card);
+                } else {
+                    document.getElementById("completed").appendChild(card);
+                }
+            });
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`/api/orders/update/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status })
+            });
+
+            loadOrders();
+        }
+
+        loadOrders();
     </script>
 
 </body>
