@@ -9,14 +9,30 @@ router.post("/create", async (req, res) => {
 
         const { customerName, phone, orderType, address, items } = req.body;
 
-        if (!customerName || !phone || !orderType || !items || items.length === 0) {
+        // Basic validation
+        if (!customerName || !phone || !orderType) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        const totalAmount = items.reduce(
-            (sum, item) => sum + item.price * item.quantity,
-            0
-        );
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: "Items must be a non-empty array" });
+        }
+
+        // Calculate total safely
+        const totalAmount = items.reduce((sum, item) => {
+            const price = Number(item.price);
+            const quantity = Number(item.quantity);
+
+            if (isNaN(price) || isNaN(quantity)) {
+                throw new Error("Invalid price or quantity in items");
+            }
+
+            return sum + price * quantity;
+        }, 0);
+
+        if (totalAmount <= 0) {
+            return res.status(400).json({ message: "Invalid total amount" });
+        }
 
         const newOrder = new Order({
             customerName,
@@ -24,22 +40,21 @@ router.post("/create", async (req, res) => {
             orderType,
             address,
             items,
-            totalAmount,
+            totalAmount
         });
 
         await newOrder.save();
 
         res.status(201).json({
             message: "Order placed successfully",
-            orderNumber: newOrder.orderNumber,
+            orderNumber: newOrder.orderNumber
         });
 
     } catch (error) {
-        console.error("ORDER ERROR FULL:", error);
+        console.error("ORDER ERROR:", error);
         res.status(500).json({
             message: "Server error",
-            error: error.message,
-            stack: error.stack
+            error: error.message
         });
     }
 });
@@ -54,5 +69,3 @@ router.get("/all", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
-module.exports = router;

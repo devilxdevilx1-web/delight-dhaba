@@ -1,9 +1,18 @@
 const mongoose = require("mongoose");
 
 const orderItemSchema = new mongoose.Schema({
-    name: String,
-    quantity: Number,
-    price: Number
+    name: {
+        type: String,
+        required: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    }
 });
 
 const orderSchema = new mongoose.Schema(
@@ -29,9 +38,14 @@ const orderSchema = new mongoose.Schema(
             required: true
         },
 
-        address: String,
+        address: {
+            type: String
+        },
 
-        items: [orderItemSchema],
+        items: {
+            type: [orderItemSchema],
+            required: true
+        },
 
         totalAmount: {
             type: Number,
@@ -47,17 +61,21 @@ const orderSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Auto increment order number
+// Auto increment order number safely
 orderSchema.pre("save", async function (next) {
-    if (this.isNew) {
-        const lastOrder = await mongoose
-            .model("Order")
-            .findOne()
-            .sort({ orderNumber: -1 });
+    try {
+        if (this.isNew) {
+            const lastOrder = await mongoose
+                .model("Order")
+                .findOne()
+                .sort({ orderNumber: -1 });
 
-        this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
+            this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
+        }
+        next();
+    } catch (error) {
+        next(error);
     }
-    next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);
