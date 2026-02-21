@@ -3,151 +3,163 @@
 
 <head>
     <title>Delight Dhaba Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f6fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2f3542, #1e272e);
+            color: white;
             padding: 20px;
-        }
-
-        h1 {
             text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
-        h2 {
-            margin-top: 40px;
+        .container {
+            padding: 20px;
+            max-width: 1000px;
+            margin: auto;
         }
 
-        .order {
+        .card {
             background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .pending {
+            background: #ffa502;
         }
 
         .completed {
-            opacity: 0.6;
+            background: #2ed573;
         }
 
         button {
-            padding: 8px 12px;
-            background: green;
-            color: white;
+            padding: 10px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background: darkgreen;
+        .complete-btn {
+            background: #2ed573;
+            color: white;
         }
 
-        #loginBox {
-            max-width: 300px;
-            margin: 100px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        .complete-btn:hover {
+            background: #20bf6b;
         }
 
-        input {
-            padding: 8px;
-            width: 100%;
-            margin-bottom: 10px;
+        ul {
+            padding-left: 20px;
+        }
+
+        @media(max-width: 600px) {
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div id="loginBox">
-        <h2>Admin Login</h2>
-        <input type="password" id="password" placeholder="Enter password" />
-        <button onclick="login()">Login</button>
-    </div>
+    <header>
+        Delight Dhaba Admin Panel
+    </header>
 
-    <div id="adminPanel" style="display:none;">
-        <h1>Delight Dhaba Admin Panel</h1>
-
-        <h2>🟢 Pending Orders</h2>
-        <div id="pendingOrders"></div>
-
-        <h2>✅ Completed Orders</h2>
-        <div id="completedOrders"></div>
+    <div class="container" id="ordersContainer">
     </div>
 
     <script>
-        const BASE_URL = "https://delight-dhaba.onrender.com";
-        const ADMIN_PASSWORD = "1234"; // 🔥 Change this later
-
-        function login() {
-            const entered = document.getElementById("password").value;
-
-            if (entered === ADMIN_PASSWORD) {
-                document.getElementById("loginBox").style.display = "none";
-                document.getElementById("adminPanel").style.display = "block";
-                loadOrders();
-                setInterval(loadOrders, 5000);
-            } else {
-                alert("Wrong password");
-            }
-        }
-
         async function loadOrders() {
-            const res = await fetch(BASE_URL + "/api/orders/all");
-            const data = await res.json();
+            const res = await fetch("/api/orders/all");
+            const orders = await res.json();
 
-            const pendingContainer = document.getElementById("pendingOrders");
-            const completedContainer = document.getElementById("completedOrders");
+            const container = document.getElementById("ordersContainer");
+            container.innerHTML = "";
 
-            pendingContainer.innerHTML = "";
-            completedContainer.innerHTML = "";
+            orders.forEach(order => {
 
-            // Sort newest first
-            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                const card = document.createElement("div");
+                card.className = "card";
 
-            data.forEach(order => {
+                const statusClass = order.orderStatus === "completed" ? "completed" : "pending";
 
-                const div = document.createElement("div");
-                div.className = "order";
+                card.innerHTML = `
+      <div class="order-header">
+        <h3>Order #${order.orderNumber}</h3>
+        <span class="badge ${statusClass}">${order.orderStatus}</span>
+      </div>
 
-                div.innerHTML = `
-      <h3>Order #${order.orderNumber}</h3>
       <p><strong>Name:</strong> ${order.customerName}</p>
       <p><strong>Phone:</strong> ${order.phone}</p>
       <p><strong>Address:</strong> ${order.address}</p>
       <p><strong>Total:</strong> ₹${order.totalAmount}</p>
-      <p><strong>Status:</strong> ${order.orderStatus}</p>
-      <p><strong>Items:</strong></p>
+
+      <strong>Items:</strong>
       <ul>
         ${order.items.map(item => `
           <li>${item.name} x ${item.quantity} (₹${item.price})</li>
         `).join("")}
       </ul>
-      ${order.orderStatus === "pending"
-                        ? `<button onclick="markCompleted('${order._id}')">Mark as Completed</button>`
-                        : ""}
+
+      ${order.orderStatus !== "completed"
+                        ? `<button class="complete-btn" onclick="markCompleted('${order._id}')">Mark as Completed</button>`
+                        : ""
+                    }
     `;
 
-                if (order.orderStatus === "pending") {
-                    pendingContainer.appendChild(div);
-                } else {
-                    div.classList.add("completed");
-                    completedContainer.appendChild(div);
-                }
+                container.appendChild(card);
             });
         }
 
         async function markCompleted(id) {
-            await fetch(BASE_URL + "/api/orders/complete/" + id, {
-                method: "PUT"
+            await fetch("/api/orders/update/" + id, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: "completed" })
             });
 
             loadOrders();
         }
+
+        loadOrders();
+        setInterval(loadOrders, 5000);
     </script>
 
 </body>
