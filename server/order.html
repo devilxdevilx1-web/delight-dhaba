@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Delight Dhaba - Order Now</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: darkgreen;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Delight Dhaba - Order Now</h1>
+
+    <h2>Customer Details</h2>
+
+    <input type="text" id="name" placeholder="Your Name" required>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+    <input type="text" id="address" placeholder="Delivery Address" required>
+
+    <h2>Menu</h2>
+
+    <div class="menu-item">
+        Paneer Butter Masala (₹250)
+        <input type="number" id="paneer" min="0" value="0">
+    </div>
+
+    <div class="menu-item">
+        Butter Naan (₹40)
+        <input type="number" id="naan" min="0" value="0">
+    </div>
+
+    <button onclick="placeOrder()">Place Order</button>
+
+    <script>
+        async function placeOrder() {
+
+            const name = document.getElementById("name").value;
+            const phone = document.getElementById("phone").value;
+            const address = document.getElementById("address").value;
+
+            const paneerQty = parseInt(document.getElementById("paneer").value);
+            const naanQty = parseInt(document.getElementById("naan").value);
+
+            let items = [];
+            let totalAmount = 0;
+
+            if (paneerQty > 0) {
+                items.push({
+                    name: "Paneer Butter Masala",
+                    quantity: paneerQty,
+                    price: 250
+                });
+                totalAmount += paneerQty * 250;
+            }
+
+            if (naanQty > 0) {
+                items.push({
+                    name: "Butter Naan",
+                    quantity: naanQty,
+                    price: 40
+                });
+                totalAmount += naanQty * 40;
+            }
+
+            if (!name || !phone || !address || items.length === 0) {
+                alert("Please fill all details and select items.");
+                return;
+            }
+
+            const response = await fetch("/api/orders/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    customerName: name,
+                    phone: phone,
+                    orderType: "delivery",
+                    address: address,
+                    items: items,
+                    totalAmount: totalAmount
+                })
+            });
+
+            const data = await response.json();
+
+            alert("Order placed! Your order number is: " + data.orderNumber);
+
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("address").value = "";
+            document.getElementById("paneer").value = 0;
+            document.getElementById("naan").value = 0;
+        }
+    </script>
+
+</body>
+
+</html>
