@@ -27,10 +27,17 @@
             padding: 20px;
         }
 
+        h2 {
+            margin-top: 40px;
+            border-left: 6px solid #ff4757;
+            padding-left: 10px;
+        }
+
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
+            margin-top: 15px;
         }
 
         .menu-card {
@@ -62,10 +69,6 @@
             font-weight: bold;
         }
 
-        button:hover {
-            background: #20bf6b;
-        }
-
         .cart {
             position: fixed;
             right: 20px;
@@ -75,10 +78,6 @@
             width: 300px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .cart h3 {
-            margin-top: 0;
         }
 
         input {
@@ -103,13 +102,7 @@
         Delight Dhaba - Order Online
     </header>
 
-    <div class="container">
-
-        <h2>Menu</h2>
-
-        <div class="menu-grid" id="menuGrid"></div>
-
-    </div>
+    <div class="container" id="menuContainer"></div>
 
     <div class="cart">
         <h3>Your Cart</h3>
@@ -125,45 +118,105 @@
 
     <script>
 
-        // 🔥 FULL MENU LIST
-        const menu = [
-            { name: "Paneer Butter Masala", price: 250 },
-            { name: "Shahi Paneer", price: 260 },
-            { name: "Dal Tadka", price: 180 },
-            { name: "Jeera Rice", price: 150 },
-            { name: "Butter Naan", price: 40 },
-            { name: "Tandoori Roti", price: 25 },
-            { name: "Veg Biryani", price: 220 },
-            { name: "Chilli Paneer", price: 240 }
-        ];
+        // 🔥 CATEGORY BASED MENU
+        const menu = {
+            "Paneer Items": [
+                { name: "Paneer Butter Masala", price: 190 },
+                { name: " Paneer butter masala sp", price: 220 },
+                { name: "palak paneer ", price: 110 },
+                { name: "palak paneer sp", price: 140 },
+                { name: "methi chaman", price: 190 },
+                { name: "methi chaman sp", price: 220 },
+                { name: "paneer mushroom", price: 200 },
+                { name: "paneer chana masala ", price: 170 },
+                { name: "paneer malai kofti ", price: 200 }
+
+
+
+            ],
+            "Kaju Items": [
+                { name: "kaju tomato", price: 190 },
+                { name: "Kaju tomato sp", price: 220 },
+                { name: "kaju paneer", price: 220 },
+                { name: "kaju mushroom ", price: 200 },
+                { name: "kaju palak", price: 170 },
+                { name: "kaju chana masala", price: 170 },
+                { name: "kaju malai kofta", price: 200 }
+            ],
+            "Veg Curries": [
+                { name: "palak", price: 100 },
+                { name: "dal", price: 100 },
+                { name: "Dal mahani", price: 110 },
+                { name: "chana masala", price: 120 },
+                { name: "aloo bataani", price: 100 },
+                { name: "kadai pakodi", price: 100 },
+                { name: "tomato curry", price: 100 },
+                { name: "all mixture ", price: 180 },
+                { name: "mushroom curry", price: 180 },
+                { name: "malai kofta ", price: 180 }
+
+
+
+
+
+
+            ],
+            "Pulka ": [
+                { name: "pulka", price: 8 }
+
+            ],
+            "Parathas": [
+                { name: "Aloo Paratha", price: 40 },
+                { name: "sada Paratha", price: 40 },
+                { name: "papad", price: 25 },
+                { name: "masala papad", price: 40 },
+
+
+            ]
+        };
 
         let cart = [];
 
         function renderMenu() {
-            const grid = document.getElementById("menuGrid");
+            const container = document.getElementById("menuContainer");
 
-            menu.forEach((item, index) => {
-                const card = document.createElement("div");
-                card.className = "menu-card";
+            Object.keys(menu).forEach(category => {
 
-                card.innerHTML = `
-      <h3>${item.name}</h3>
-      <p class="price">₹${item.price}</p>
-      <button onclick="addToCart(${index})">Add to Cart</button>
-    `;
+                const section = document.createElement("div");
 
-                grid.appendChild(card);
+                section.innerHTML = `<h2>${category}</h2>`;
+
+                const grid = document.createElement("div");
+                grid.className = "menu-grid";
+
+                menu[category].forEach((item) => {
+
+                    const card = document.createElement("div");
+                    card.className = "menu-card";
+
+                    card.innerHTML = `
+        <h3>${item.name}</h3>
+        <p class="price">₹${item.price}</p>
+        <button onclick="addToCart('${item.name}', ${item.price})">
+          Add to Cart
+        </button>
+      `;
+
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+                container.appendChild(section);
             });
         }
 
-        function addToCart(index) {
-            const item = menu[index];
-            const existing = cart.find(i => i.name === item.name);
+        function addToCart(name, price) {
+            const existing = cart.find(i => i.name === name);
 
             if (existing) {
                 existing.quantity += 1;
             } else {
-                cart.push({ ...item, quantity: 1 });
+                cart.push({ name, price, quantity: 1 });
             }
 
             renderCart();
@@ -177,29 +230,16 @@
 
             cart.forEach(item => {
                 total += item.price * item.quantity;
-
-                container.innerHTML += `
-      <p>${item.name} x ${item.quantity}</p>
-    `;
+                container.innerHTML += `<p>${item.name} x ${item.quantity}</p>`;
             });
 
             document.getElementById("total").innerText = total;
         }
 
         async function placeOrder() {
-
             const name = document.getElementById("name").value;
             const phone = document.getElementById("phone").value;
             const address = document.getElementById("address").value;
-            body: JSON.stringify({
-                user: localStorage.getItem("userId"),
-                customerName: name,
-                phone: phone,
-                orderType: "delivery",
-                address: address,
-                items: cart,
-                totalAmount: totalAmount
-            })
 
             if (!name || !phone || !address || cart.length === 0) {
                 alert("Please fill details and add items.");
@@ -210,9 +250,7 @@
 
             const response = await fetch("/api/orders/create", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     customerName: name,
                     phone: phone,
