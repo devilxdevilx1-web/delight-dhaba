@@ -2,105 +2,202 @@
 <html>
 
 <head>
-    <title>Delight Dhaba - Order Now</title>
+    <title>Delight Dhaba - Order Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body {
-            font-family: Arial;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
             padding: 20px;
-            background: #f4f4f4;
-        }
-
-        h1 {
             text-align: center;
+            font-size: 22px;
+            font-weight: bold;
         }
 
-        .menu-item {
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-card {
             background: white;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: 0.2s ease;
         }
 
-        input {
-            padding: 8px;
-            margin-bottom: 10px;
-            width: 100%;
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .price {
+            color: #ff4757;
+            font-weight: bold;
+            margin-top: 5px;
         }
 
         button {
-            padding: 10px;
-            background: green;
-            color: white;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #2ed573;
             border: none;
-            border-radius: 4px;
+            color: white;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: bold;
         }
 
         button:hover {
-            background: darkgreen;
+            background: #20bf6b;
+        }
+
+        .cart {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: white;
+            padding: 20px;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .cart h3 {
+            margin-top: 0;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        @media(max-width: 768px) {
+            .cart {
+                position: static;
+                width: 100%;
+                margin-top: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Delight Dhaba - Order Now</h1>
+    <header>
+        Delight Dhaba - Order Online
+    </header>
 
-    <h2>Customer Details</h2>
+    <div class="container">
 
-    <input type="text" id="name" placeholder="Your Name" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
-    <input type="text" id="address" placeholder="Delivery Address" required>
+        <h2>Menu</h2>
 
-    <h2>Menu</h2>
+        <div class="menu-grid" id="menuGrid"></div>
 
-    <div class="menu-item">
-        Paneer Butter Masala (₹250)
-        <input type="number" id="paneer" min="0" value="0">
     </div>
 
-    <div class="menu-item">
-        Butter Naan (₹40)
-        <input type="number" id="naan" min="0" value="0">
-    </div>
+    <div class="cart">
+        <h3>Your Cart</h3>
+        <div id="cartItems"></div>
+        <p><strong>Total: ₹<span id="total">0</span></strong></p>
 
-    <button onclick="placeOrder()">Place Order</button>
+        <input type="text" id="name" placeholder="Your Name">
+        <input type="text" id="phone" placeholder="Phone">
+        <input type="text" id="address" placeholder="Delivery Address">
+
+        <button onclick="placeOrder()">Place Order</button>
+    </div>
 
     <script>
+
+        // 🔥 FULL MENU LIST
+        const menu = [
+            { name: "Paneer Butter Masala", price: 250 },
+            { name: "Shahi Paneer", price: 260 },
+            { name: "Dal Tadka", price: 180 },
+            { name: "Jeera Rice", price: 150 },
+            { name: "Butter Naan", price: 40 },
+            { name: "Tandoori Roti", price: 25 },
+            { name: "Veg Biryani", price: 220 },
+            { name: "Chilli Paneer", price: 240 }
+        ];
+
+        let cart = [];
+
+        function renderMenu() {
+            const grid = document.getElementById("menuGrid");
+
+            menu.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.className = "menu-card";
+
+                card.innerHTML = `
+      <h3>${item.name}</h3>
+      <p class="price">₹${item.price}</p>
+      <button onclick="addToCart(${index})">Add to Cart</button>
+    `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCart(index) {
+            const item = menu[index];
+            const existing = cart.find(i => i.name === item.name);
+
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...item, quantity: 1 });
+            }
+
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById("cartItems");
+            container.innerHTML = "";
+
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+
+                container.innerHTML += `
+      <p>${item.name} x ${item.quantity}</p>
+    `;
+            });
+
+            document.getElementById("total").innerText = total;
+        }
+
         async function placeOrder() {
 
             const name = document.getElementById("name").value;
             const phone = document.getElementById("phone").value;
             const address = document.getElementById("address").value;
 
-            const paneerQty = parseInt(document.getElementById("paneer").value);
-            const naanQty = parseInt(document.getElementById("naan").value);
-
-            let items = [];
-            let totalAmount = 0;
-
-            if (paneerQty > 0) {
-                items.push({
-                    name: "Paneer Butter Masala",
-                    quantity: paneerQty,
-                    price: 250
-                });
-                totalAmount += paneerQty * 250;
-            }
-
-            if (naanQty > 0) {
-                items.push({
-                    name: "Butter Naan",
-                    quantity: naanQty,
-                    price: 40
-                });
-                totalAmount += naanQty * 40;
-            }
-
-            if (!name || !phone || !address || items.length === 0) {
-                alert("Please fill all details and select items.");
+            if (!name || !phone || !address || cart.length === 0) {
+                alert("Please fill details and add items.");
                 return;
             }
+
+            const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
             const response = await fetch("/api/orders/create", {
                 method: "POST",
@@ -112,21 +209,25 @@
                     phone: phone,
                     orderType: "delivery",
                     address: address,
-                    items: items,
+                    items: cart,
                     totalAmount: totalAmount
                 })
             });
 
             const data = await response.json();
 
-            alert("Order placed! Your order number is: " + data.orderNumber);
+            alert("Order placed! Order No: " + data.orderNumber);
 
+            cart = [];
+            renderCart();
             document.getElementById("name").value = "";
             document.getElementById("phone").value = "";
             document.getElementById("address").value = "";
-            document.getElementById("paneer").value = 0;
-            document.getElementById("naan").value = 0;
         }
+
+        renderMenu();
+        renderCart();
+
     </script>
 
 </body>
