@@ -191,6 +191,15 @@
             const name = document.getElementById("name").value;
             const phone = document.getElementById("phone").value;
             const address = document.getElementById("address").value;
+            body: JSON.stringify({
+                user: localStorage.getItem("userId"),
+                customerName: name,
+                phone: phone,
+                orderType: "delivery",
+                address: address,
+                items: cart,
+                totalAmount: totalAmount
+            })
 
             if (!name || !phone || !address || cart.length === 0) {
                 alert("Please fill details and add items.");
