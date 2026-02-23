@@ -2,14 +2,14 @@
 <html>
 
 <head>
-    <title>Delight Dhaba</title>
+    <title>Delight Dhaba - Pure Veg</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
             margin: 0;
-            font-family: Arial;
-            background: #f5f6fa;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
         }
 
         header {
@@ -17,8 +17,9 @@
             padding: 20px;
             text-align: center;
             color: white;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .container {
@@ -29,39 +30,54 @@
 
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
         }
 
         input {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
         }
 
         button {
-            padding: 8px 12px;
+            padding: 10px 15px;
             background: #2ed573;
             border: none;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #20bf6b;
+            transform: translateY(-2px);
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
         }
 
         .menu-card {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
 
         .price {
@@ -77,11 +93,11 @@
 
 <body>
 
-    <header>Delight Dhaba - Pure Veg</header>
+    <header>Delight Dhaba - Premium Pure Veg</header>
 
     <div class="container">
 
-        <!-- LOGIN SECTION -->
+        <!-- LOGIN -->
         <div id="authSection" class="card">
             <h2>Login / Signup</h2>
             <input id="email" placeholder="Email">
@@ -90,7 +106,7 @@
             <button onclick="signup()">Create Account</button>
         </div>
 
-        <!-- MENU SECTION -->
+        <!-- MENU -->
         <div id="menuSection" class="hidden">
 
             <h2>Menu</h2>
@@ -100,7 +116,6 @@
                 <h3>Your Cart</h3>
                 <div id="cartItems"></div>
                 <p><strong>Total ₹ <span id="total">0</span></strong></p>
-
                 <input id="address" placeholder="Delivery Address">
                 <button onclick="placeOrder()">Order (Cash on Delivery)</button>
             </div>
@@ -110,8 +125,6 @@
     </div>
 
     <script>
-
-        /* ================= AUTH ================= */
 
         async function signup() {
             const res = await fetch("/api/auth/signup", {
@@ -147,8 +160,6 @@
             }
         }
 
-        /* ================= MENU ================= */
-
         const menu = {
             "Paneer Items": [
                 { name: "Paneer Butter Masala", price: 250 },
@@ -178,23 +189,20 @@
         function renderMenu() {
             const container = document.getElementById("menuContainer");
             container.innerHTML = "";
-
             Object.keys(menu).forEach(cat => {
                 container.innerHTML += `<h3>${cat}</h3>`;
                 const grid = document.createElement("div");
                 grid.className = "menu-grid";
-
                 menu[cat].forEach(item => {
                     const card = document.createElement("div");
                     card.className = "menu-card";
                     card.innerHTML = `
-        <h4>${item.name}</h4>
-        <p class="price">₹${item.price}</p>
-        <button onclick="addToCart('${item.name}',${item.price})">Add</button>
-      `;
+                <h4>${item.name}</h4>
+                <p class="price">₹${item.price}</p>
+                <button onclick="addToCart('${item.name}',${item.price})">Add</button>
+            `;
                     grid.appendChild(card);
                 });
-
                 container.appendChild(grid);
             });
         }
@@ -210,19 +218,16 @@
             const container = document.getElementById("cartItems");
             container.innerHTML = "";
             let total = 0;
-
             cart.forEach(i => {
                 total += i.price * i.qty;
                 container.innerHTML += `<p>${i.name} x ${i.qty}</p>`;
             });
-
             document.getElementById("total").innerText = total;
         }
 
         async function placeOrder() {
             const user = JSON.parse(localStorage.getItem("user"));
             const address = document.getElementById("address").value;
-
             const totalAmount = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
             const res = await fetch("/api/orders/create", {
@@ -240,13 +245,11 @@
             });
 
             const data = await res.json();
-
             alert("Order placed! Order No: " + data.orderNumber);
             cart = [];
             renderCart();
         }
 
-        /* Auto login */
         if (localStorage.getItem("user")) {
             showMenu();
         }

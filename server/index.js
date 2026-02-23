@@ -5,20 +5,21 @@ require("dotenv").config();
 
 const app = express();
 
-/* Middlewares */
+/* Middleware */
 app.use(cors());
 app.use(express.json());
 
-/* Static files (VERY IMPORTANT) */
+/* Serve Static Files */
 app.use(express.static(__dirname));
 
-/* ROUTES */
+/* Routes */
+app.use("/api/auth", require("./routes/authroute"));
 app.use("/api/orders", require("./routes/orderroute"));
-app.use("/api/auth", require("./routes/authroute"));   // 🔥 THIS LINE IS CRITICAL
+app.use("/api/admin", require("./routes/adminroute"));
 
-/* Test Route */
+/* Root route */
 app.get("/", (req, res) => {
-    res.send("Delight Dhaba Backend Running");
+    res.sendFile(__dirname + "/app.html");
 });
 
 /* MongoDB */
