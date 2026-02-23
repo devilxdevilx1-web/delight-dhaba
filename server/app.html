@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Delight Dhaba</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f5f6fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: #2ed573;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .menu-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .price {
+            color: #ff4757;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>Delight Dhaba - Pure Veg</header>
+
+    <div class="container">
+
+        <!-- LOGIN SECTION -->
+        <div id="authSection" class="card">
+            <h2>Login / Signup</h2>
+            <input id="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <button onclick="signup()">Create Account</button>
+        </div>
+
+        <!-- MENU SECTION -->
+        <div id="menuSection" class="hidden">
+
+            <h2>Menu</h2>
+            <div id="menuContainer"></div>
+
+            <div class="card">
+                <h3>Your Cart</h3>
+                <div id="cartItems"></div>
+                <p><strong>Total ₹ <span id="total">0</span></strong></p>
+
+                <input id="address" placeholder="Delivery Address">
+                <button onclick="placeOrder()">Order (Cash on Delivery)</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        /* ================= AUTH ================= */
+
+        async function signup() {
+            const res = await fetch("/api/auth/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: document.getElementById("email").value,
+                    password: document.getElementById("password").value
+                })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        async function login() {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: document.getElementById("email").value,
+                    password: document.getElementById("password").value
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem("user", JSON.stringify(data.user));
+                showMenu();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        /* ================= MENU ================= */
+
+        const menu = {
+            "Paneer Items": [
+                { name: "Paneer Butter Masala", price: 250 },
+                { name: "Shahi Paneer", price: 260 }
+            ],
+            "Kaju Items": [
+                { name: "Kaju Masala", price: 280 }
+            ],
+            "Veg Curries": [
+                { name: "Mix Veg", price: 200 },
+                { name: "Dal Tadka", price: 180 }
+            ],
+            "Roti": [
+                { name: "Tandoori Roti", price: 25 },
+                { name: "Butter Roti", price: 35 }
+            ]
+        };
+
+        let cart = [];
+
+        function showMenu() {
+            document.getElementById("authSection").classList.add("hidden");
+            document.getElementById("menuSection").classList.remove("hidden");
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const container = document.getElementById("menuContainer");
+            container.innerHTML = "";
+
+            Object.keys(menu).forEach(cat => {
+                container.innerHTML += `<h3>${cat}</h3>`;
+                const grid = document.createElement("div");
+                grid.className = "menu-grid";
+
+                menu[cat].forEach(item => {
+                    const card = document.createElement("div");
+                    card.className = "menu-card";
+                    card.innerHTML = `
+        <h4>${item.name}</h4>
+        <p class="price">₹${item.price}</p>
+        <button onclick="addToCart('${item.name}',${item.price})">Add</button>
+      `;
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(grid);
+            });
+        }
+
+        function addToCart(name, price) {
+            const existing = cart.find(i => i.name === name);
+            if (existing) existing.qty++;
+            else cart.push({ name, price, qty: 1 });
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById("cartItems");
+            container.innerHTML = "";
+            let total = 0;
+
+            cart.forEach(i => {
+                total += i.price * i.qty;
+                container.innerHTML += `<p>${i.name} x ${i.qty}</p>`;
+            });
+
+            document.getElementById("total").innerText = total;
+        }
+
+        async function placeOrder() {
+            const user = JSON.parse(localStorage.getItem("user"));
+            const address = document.getElementById("address").value;
+
+            const totalAmount = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+            const res = await fetch("/api/orders/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user: user?.id,
+                    customerName: user?.email,
+                    phone: "N/A",
+                    orderType: "delivery",
+                    address: address,
+                    items: cart,
+                    totalAmount: totalAmount
+                })
+            });
+
+            const data = await res.json();
+
+            alert("Order placed! Order No: " + data.orderNumber);
+            cart = [];
+            renderCart();
+        }
+
+        /* Auto login */
+        if (localStorage.getItem("user")) {
+            showMenu();
+        }
+
+    </script>
+
+</body>
+
+</html>
