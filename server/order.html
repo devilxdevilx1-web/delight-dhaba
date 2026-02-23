@@ -170,6 +170,16 @@
 </head>
 
 <body>
+    body: JSON.stringify({
+    user: localStorage.getItem("userId"),
+    customerName: name,
+    phone: phone,
+    orderType: "delivery",
+    address: address,
+    items: cart,
+    totalAmount: totalAmount
+    })
+
 
     <header>
         Delight Dhaba - Order Online
@@ -306,7 +316,14 @@
             document.getElementById("phone").value = "";
             document.getElementById("address").value = "";
         }
+        // Auto-fill if logged in
+        window.onload = function () {
+            const name = localStorage.getItem("name");
+            const phone = localStorage.getItem("phone");
 
+            if (name) document.getElementById("name").value = name;
+            if (phone) document.getElementById("phone").value = phone;
+        };
         renderMenu();
         renderCart();
 

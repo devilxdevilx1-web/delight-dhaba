@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login - Delight Dhaba</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2ed573;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+            color: #ff4757;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Customer Login</h2>
+
+        <input type="text" id="name" placeholder="Full Name (Signup only)">
+        <input type="text" id="emailOrPhone" placeholder="Email OR Phone">
+        <input type="password" id="password" placeholder="Password">
+
+        <button onclick="login()">Login</button>
+        <div class="link" onclick="signup()">Create Account</div>
+    </div>
+
+    <script>
+
+        async function signup() {
+            const name = document.getElementById("name").value;
+            const emailOrPhone = document.getElementById("emailOrPhone").value;
+            const password = document.getElementById("password").value;
+
+            const body = { name, password };
+
+            if (emailOrPhone.includes("@")) body.email = emailOrPhone;
+            else body.phone = emailOrPhone;
+
+            const res = await fetch("/api/auth/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        async function login() {
+            const emailOrPhone = document.getElementById("emailOrPhone").value;
+            const password = document.getElementById("password").value;
+
+            const body = { password };
+
+            if (emailOrPhone.includes("@")) body.email = emailOrPhone;
+            else body.phone = emailOrPhone;
+
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+
+            if (data.token) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("userId", data.user.id);
+                localStorage.setItem("name", data.user.name);
+                localStorage.setItem("phone", data.user.phone);
+
+                window.location.href = "/order.html";
+            } else {
+                alert(data.message);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
