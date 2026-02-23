@@ -10,6 +10,17 @@
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
             background: #f4f6f9;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         header {
@@ -19,6 +30,19 @@
             text-align: center;
             font-size: 22px;
             font-weight: bold;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .container {
@@ -45,11 +69,25 @@
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            transition: 0.2s ease;
+            transition: all 0.3s ease;
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .menu-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
         }
 
         .price {
@@ -67,6 +105,12 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #20bf6b;
+            transform: scale(1.05);
         }
 
         .cart {
@@ -78,12 +122,41 @@
             width: 300px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.6s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         input {
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
+        }
+
+        .cart-item {
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         @media(max-width: 768px) {
@@ -118,60 +191,23 @@
 
     <script>
 
-        // 🔥 CATEGORY BASED MENU
         const menu = {
             "Paneer Items": [
-                { name: "Paneer Butter Masala", price: 190 },
-                { name: " Paneer butter masala sp", price: 220 },
-                { name: "palak paneer ", price: 110 },
-                { name: "palak paneer sp", price: 140 },
-                { name: "methi chaman", price: 190 },
-                { name: "methi chaman sp", price: 220 },
-                { name: "paneer mushroom", price: 200 },
-                { name: "paneer chana masala ", price: 170 },
-                { name: "paneer malai kofti ", price: 200 }
-
-
-
+                { name: "Paneer Butter Masala", price: 250 },
+                { name: "Shahi Paneer", price: 260 }
             ],
             "Kaju Items": [
-                { name: "kaju tomato", price: 190 },
-                { name: "Kaju tomato sp", price: 220 },
-                { name: "kaju paneer", price: 220 },
-                { name: "kaju mushroom ", price: 200 },
-                { name: "kaju palak", price: 170 },
-                { name: "kaju chana masala", price: 170 },
-                { name: "kaju malai kofta", price: 200 }
+                { name: "Kaju Masala", price: 280 }
             ],
             "Veg Curries": [
-                { name: "palak", price: 100 },
-                { name: "dal", price: 100 },
-                { name: "Dal mahani", price: 110 },
-                { name: "chana masala", price: 120 },
-                { name: "aloo bataani", price: 100 },
-                { name: "kadai pakodi", price: 100 },
-                { name: "tomato curry", price: 100 },
-                { name: "all mixture ", price: 180 },
-                { name: "mushroom curry", price: 180 },
-                { name: "malai kofta ", price: 180 }
-
-
-
-
-
-
+                { name: "Mix Veg Curry", price: 200 },
+                { name: "Dal Tadka", price: 180 }
             ],
-            "Pulka ": [
-                { name: "pulka", price: 8 }
-
+            "Pulka & Roti": [
+                { name: "Tandoori Roti", price: 25 }
             ],
             "Parathas": [
-                { name: "Aloo Paratha", price: 40 },
-                { name: "sada Paratha", price: 40 },
-                { name: "papad", price: 25 },
-                { name: "masala papad", price: 40 },
-
-
+                { name: "Aloo Paratha", price: 60 }
             ]
         };
 
@@ -183,13 +219,12 @@
             Object.keys(menu).forEach(category => {
 
                 const section = document.createElement("div");
-
                 section.innerHTML = `<h2>${category}</h2>`;
 
                 const grid = document.createElement("div");
                 grid.className = "menu-grid";
 
-                menu[category].forEach((item) => {
+                menu[category].forEach(item => {
 
                     const card = document.createElement("div");
                     card.className = "menu-card";
@@ -230,7 +265,7 @@
 
             cart.forEach(item => {
                 total += item.price * item.quantity;
-                container.innerHTML += `<p>${item.name} x ${item.quantity}</p>`;
+                container.innerHTML += `<p class="cart-item">${item.name} x ${item.quantity}</p>`;
             });
 
             document.getElementById("total").innerText = total;
